@@ -1,0 +1,21 @@
+{
+  "required_lines": [
+    {
+      "values": [
+        "Query Text: 'select version()'"
+      ],
+      "options": {
+      }
+    },
+    {
+      "values": [
+        "(?-mix:PostgreSQL \\d+.\\d+)"
+      ],
+      "options": {
+      }
+    }
+  ],
+  "known_failures": [
+
+  ]
+}

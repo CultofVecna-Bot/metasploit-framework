@@ -1,0 +1,14 @@
+{
+  "required_lines": [
+    {
+      "values": [
+        "(?-mix:Version PostgreSQL \\d+.\\d+)"
+      ],
+      "options": {
+      }
+    }
+  ],
+  "known_failures": [
+
+  ]
+}

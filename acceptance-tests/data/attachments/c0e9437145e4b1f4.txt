@@ -1,0 +1,33 @@
+use auxiliary/scanner/postgres/postgres_login
+Stopping all jobs...
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_sql[0m) [0m> irb -e '(self.respond_to?(:framework) ? framework : self).datastore.user_defined.clear'
+[*] New in Metasploit 6.4 - The CreateSession option within this module can open an interactive session
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> run PASS_FILE= USER_FILE= CreateSession=true username=postgres password=password rhost=127.0.0.1 rport=5432
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> [!] No active DB -- Credential data will not be saved!
+[+] 127.0.0.1:5432 - Login Successful: postgres:password@template1
+[*] PostgreSQL session 2 opened (127.0.0.1:44167 -> 127.0.0.1:5432) at 2024-06-20 08:39:57 +0000
+use auxiliary/admin/postgres/postgres_sql
+[-] 127.0.0.1:5432 - LOGIN FAILED: admin:admin@template1 (Incorrect: Invalid username or password)
+[-] 127.0.0.1:5432 - LOGIN FAILED: admin:password@template1 (Incorrect: Invalid username or password)
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Bruteforce completed, 1 credential was successful.
+[*] 1 Postgres session was opened successfully.
+[*] Auxiliary module execution completed
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> [*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_sql[0m) [0m> run session=2 Verbose=true
+[*] 127.0.0.1:5432 Postgres - querying with 'select version()'
+[*] 127.0.0.1:5432 Rows Returned: 1
+Query Text: 'select version()'
+==============================
+
+    version
+    -------
+    PostgreSQL 9.4.26 on x86_64-pc-linux-gnu (Debian 9.4.26-1.pgdg90+1), compiled by gcc (Debian 6.3.0-18+deb9u1) 6.3.0 20170516, 64-bit
+
+[+] 127.0.0.1:5432 Postgres - Command complete.
+[*] Auxiliary module execution completed
+sessions -K
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_sql[0m) [0m> jobs -K
+[*] Killing all sessions...
+[*] 127.0.0.1 - PostgreSQL session 2 closed.
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_sql[0m) [0m> 

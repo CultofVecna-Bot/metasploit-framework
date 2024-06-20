@@ -1,0 +1,16 @@
+## Load test modules
+loadpath test/modules
+
+## Session module 
+use auxiliary/scanner/postgres/postgres_login
+
+## Set global datastore
+irb -e '(self.respond_to?(:framework) ? framework : self).datastore.user_defined.clear'
+
+## Run command
+run lhost=127.0.0.1 username=postgres password=password rhost=127.0.0.1 rport=5432
+
+
+## Replication commands
+use auxiliary/admin/postgres/postgres_sql
+run session=2 Verbose=true

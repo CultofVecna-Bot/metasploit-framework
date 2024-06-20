@@ -1,0 +1,28 @@
+{
+  "required_lines": [
+    {
+      "values": [
+        " Username  Hash"
+      ],
+      "options": {
+      }
+    },
+    {
+      "values": [
+        " --------  ----"
+      ],
+      "options": {
+      }
+    },
+    {
+      "values": [
+        "(?-mix: postgres  \\w+)"
+      ],
+      "options": {
+      }
+    }
+  ],
+  "known_failures": [
+
+  ]
+}

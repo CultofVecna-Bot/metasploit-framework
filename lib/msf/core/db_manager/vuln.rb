@@ -150,6 +150,7 @@ module Msf::DBManager::Vuln
         case opts[:proto].to_s.downcase # Catch incorrect usages, as in report_note
         when 'tcp','udp'
           proto = opts[:proto]
+          sname = opts[:sname]
         when 'dns','snmp','dhcp'
           proto = 'udp'
           sname = opts[:proto]
@@ -158,7 +159,7 @@ module Msf::DBManager::Vuln
           sname = opts[:proto]
         end
 
-        service = host.services.where(port: opts[:port].to_i, proto: proto).first_or_create
+        service = host.services.where(name: sname, port: opts[:port].to_i, proto: proto).first_or_create
       end
 
       # Try to find an existing vulnerability with the same service & references

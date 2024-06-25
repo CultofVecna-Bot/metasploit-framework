@@ -9,7 +9,6 @@ module Metasploit
       # This is the LoginScanner class for dealing with REDIS.
       # It is responsible for taking a single target, and a list of credentials
       # and attempting them. It then saves the results.
-
       class Redis
         include Metasploit::Framework::LoginScanner::Base
         include Metasploit::Framework::LoginScanner::RexSocket
@@ -26,6 +25,7 @@ module Metasploit
         # This method can create redis command which can be read by redis server
         def redis_proto(command_parts)
           return if command_parts.blank?
+
           command = "*#{command_parts.length}\r\n"
           command_parts.each do |p|
             command << "$#{p.length}\r\n#{p}\r\n"
@@ -89,10 +89,10 @@ module Metasploit
 
         # (see Base#set_sane_defaults)
         def set_sane_defaults
-          self.connection_timeout  ||= 30
-          self.port                ||= DEFAULT_PORT
-          self.max_send_size       ||= 0
-          self.send_delay          ||= 0
+          self.connection_timeout ||= 30
+          self.port               ||= DEFAULT_PORT
+          self.max_send_size      ||= 0
+          self.send_delay         ||= 0
         end
       end
     end

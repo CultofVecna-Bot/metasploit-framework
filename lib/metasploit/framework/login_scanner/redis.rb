@@ -15,13 +15,13 @@ module Metasploit
         include Metasploit::Framework::LoginScanner::RexSocket
         include Metasploit::Framework::Tcp::Client
 
-        DEFAULT_PORT         = 6379
-        LIKELY_PORTS         = [ DEFAULT_PORT ]
-        LIKELY_SERVICE_NAMES = [ 'redis' ]
-        PRIVATE_TYPES        = [ :password ]
-        REALM_KEY            = nil
-        OLD_PASSWORD_UNSET   = /but no password is set/i
-        PASSWORD_UNSET       = /without any password configured/i
+        DEFAULT_PORT          = 6379
+        LIKELY_PORTS          = [ DEFAULT_PORT ]
+        LIKELY_SERVICE_NAMES  = [ 'redis' ]
+        PRIVATE_TYPES         = [ :password ]
+        REALM_KEY             = nil
+        OLD_PASSWORD_NOT_SET  = /but no password is set/i
+        PASSWORD_NOT_SET      = /without any password configured/i
 
         # This method can create redis command which can be read by redis server
         def redis_proto(command_parts)
@@ -60,7 +60,7 @@ module Metasploit
             # Invalid password - ( -ERR invalid password\r\n )
             # Valid password   - (+OK\r\n)
 
-            if result_options[:proof] && (result_options[:proof] =~ OLD_PASSWORD_UNSET || result_options[:proof] =~ PASSWORD_UNSET)
+            if result_options[:proof] && (result_options[:proof] =~ OLD_PASSWORD_NOT_SET || result_options[:proof] =~ PASSWORD_NOT_SET)
               result_options[:status] = Metasploit::Model::Login::Status::NO_AUTH_REQUIRED
             elsif result_options[:proof] && result_options[:proof] =~ /^-ERR invalid password/i
               result_options[:status] = Metasploit::Model::Login::Status::INCORRECT

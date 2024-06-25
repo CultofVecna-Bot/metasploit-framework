@@ -52,10 +52,12 @@ module Metasploit
             connect
             select([sock], nil, nil, 0.4)
 
-            command = redis_proto(['AUTH', "#{credential.private}"])
+            command = redis_proto(['AUTH', credential.private.to_s])
+
             sock.put(command)
-            proof = validate_login(sock.get_once)
-            result_options[:proof] = proof unless proof.nil?
+
+            status = validate_login(sock.get_once)
+            result_options[:status] = status unless status.nil?
           rescue Rex::ConnectionError, EOFError, Timeout::Error, Errno::EPIPE => e
             result_options.merge!(
               proof: e,
@@ -81,8 +83,8 @@ module Metasploit
 
           return Metasploit::Model::Login::Status::NO_AUTH_REQUIRED if data =~ OLD_PASSWORD_NOT_SET
           return Metasploit::Model::Login::Status::NO_AUTH_REQUIRED if data =~ PASSWORD_NOT_SET
-          return Metasploit::Model::Login::Status::INCORRECT if data[:proof] =~ /^-ERR invalid password/
-          return Metasploit::Model::Login::Status::SUCCESSFUL if data[:proof][/^\+OK/]
+          return Metasploit::Model::Login::Status::INCORRECT if (data =~ /^-ERR invalid password/) == 0
+          return Metasploit::Model::Login::Status::SUCCESSFUL if (data =~ /^\+OK/) == 0
 
           nil
         end

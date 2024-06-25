@@ -54,31 +54,38 @@ module Metasploit
 
             command = redis_proto(['AUTH', "#{credential.private}"])
             sock.put(command)
-            result_options[:proof] = sock.get_once
-
-            # No password      - ( -ERR Client sent AUTH, but no password is set\r\n )
-            # Invalid password - ( -ERR invalid password\r\n )
-            # Valid password   - (+OK\r\n)
-
-            if result_options[:proof] && (result_options[:proof] =~ OLD_PASSWORD_NOT_SET || result_options[:proof] =~ PASSWORD_NOT_SET)
-              result_options[:status] = Metasploit::Model::Login::Status::NO_AUTH_REQUIRED
-            elsif result_options[:proof] && result_options[:proof] =~ /^-ERR invalid password/i
-              result_options[:status] = Metasploit::Model::Login::Status::INCORRECT
-            elsif result_options[:proof] && result_options[:proof][/^\+OK/]
-              result_options[:status] = Metasploit::Model::Login::Status::SUCCESSFUL
-            end
-
+            proof = validate_login(sock.get_once)
+            result_options[:proof] = proof unless proof.nil?
           rescue Rex::ConnectionError, EOFError, Timeout::Error, Errno::EPIPE => e
             result_options.merge!(
               proof: e,
               status: Metasploit::Model::Login::Status::UNABLE_TO_CONNECT
             )
           end
+
           disconnect if self.sock
+
           ::Metasploit::Framework::LoginScanner::Result.new(result_options)
         end
 
         private
+
+        # Validates the login data received from Redis and returns the correct Login status
+        # based upon the contents Redis sent back:
+        #
+        # No password      - ( -ERR Client sent AUTH, but no password is set\r\n )
+        # Invalid password - ( -ERR invalid password\r\n )
+        # Valid password   - (+OK\r\n)
+        def validate_login(data)
+          return if data.nil?
+
+          return Metasploit::Model::Login::Status::NO_AUTH_REQUIRED if data =~ OLD_PASSWORD_NOT_SET
+          return Metasploit::Model::Login::Status::NO_AUTH_REQUIRED if data =~ PASSWORD_NOT_SET
+          return Metasploit::Model::Login::Status::INCORRECT if data[:proof] =~ /^-ERR invalid password/
+          return Metasploit::Model::Login::Status::SUCCESSFUL if data[:proof][/^\+OK/]
+
+          nil
+        end
 
         # (see Base#set_sane_defaults)
         def set_sane_defaults

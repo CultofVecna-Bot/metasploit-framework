@@ -4,11 +4,11 @@ module Msf::DBManager::Vuln
   # vuln instance of each entry.
   #
   def each_vuln(wspace=framework.db.workspace, &block)
-  ::ApplicationRecord.connection_pool.with_connection {
-    wspace.vulns.each do |vulns|
-      block.call(vulns)
-    end
-  }
+    ::ApplicationRecord.connection_pool.with_connection {
+      wspace.vulns.each do |vulns|
+        block.call(vulns)
+      end
+    }
   end
 
   #
@@ -55,31 +55,30 @@ module Msf::DBManager::Vuln
 
   def get_vuln(wspace, host, service, name, data='')
     raise RuntimeError, "Not workspace safe: #{caller.inspect}"
-  ::ApplicationRecord.connection_pool.with_connection {
-    vuln = nil
-    if (service)
-      vuln = ::Mdm::Vuln.find.where("name = ? and service_id = ? and host_id = ?", name, service.id, host.id).order("vulns.id DESC").first()
-    else
-      vuln = ::Mdm::Vuln.find.where("name = ? and host_id = ?", name, host.id).first()
-    end
+    ::ApplicationRecord.connection_pool.with_connection {
+      vuln = nil
+      if (service)
+        vuln = ::Mdm::Vuln.find.where("name = ? and service_id = ? and host_id = ?", name, service.id, host.id).order("vulns.id DESC").first()
+      else
+        vuln = ::Mdm::Vuln.find.where("name = ? and host_id = ?", name, host.id).first()
+      end
 
-    return vuln
-  }
+      return vuln
+    }
   end
 
   #
   # Find a vulnerability matching this name
   #
   def has_vuln?(name)
-  ::ApplicationRecord.connection_pool.with_connection {
-    Mdm::Vuln.find_by_name(name)
-  }
+    ::ApplicationRecord.connection_pool.with_connection { Mdm::Vuln.find_by_name(name) }
   end
 
   #
   # opts MUST contain
   # +:host+:: the host where this vulnerability resides
   # +:name+:: the friendly name for this vulnerability (title)
+  # +:sname+:: the name of the service this vulnerability was detected in.
   #
   # opts can contain
   # +:info+::   a human readable description of the vuln, free-form text
@@ -87,155 +86,152 @@ module Msf::DBManager::Vuln
   # +:details:: a hash with :key pointed to a find criteria hash and the rest containing VulnDetail fields
   #
   def report_vuln(opts)
-    return if not active
-    raise ArgumentError.new("Missing required option :host") if opts[:host].nil?
-    raise ArgumentError.new("Deprecated data column for vuln, use .info instead") if opts[:data]
+    return unless active
+
+    raise ArgumentError, 'Missing required option :host' if opts[:host].nil?
+    raise ArgumentError, 'Deprecated data column for vuln, use .info instead' if opts[:data]
+    raise ArgumentError, 'Missing required option :sname' if opts[:sname].nil?
+
     name = opts[:name] || return
     info = opts[:info]
 
-  ::ApplicationRecord.connection_pool.with_connection {
-    wspace = Msf::Util::DBManager.process_opts_workspace(opts, framework)
-    opts = opts.clone()
-    opts.delete(:workspace)
-    exploited_at = opts[:exploited_at] || opts["exploited_at"]
-    details = opts.delete(:details)
-    rids = opts.delete(:ref_ids)
+    ::ApplicationRecord.connection_pool.with_connection {
+      wspace = Msf::Util::DBManager.process_opts_workspace(opts, framework)
+      opts = opts.clone
+      opts.delete(:workspace)
+      exploited_at = opts[:exploited_at] || opts['exploited_at']
+      details = opts.delete(:details)
+      rids = opts.delete(:ref_ids)
 
-    if opts[:refs]
-      rids ||= []
-      opts[:refs].each do |r|
-        if r.instance_of?(Mdm::Module::Ref)
-          str = r.name
-        elsif (r.respond_to?(:ctx_id)) and (r.respond_to?(:ctx_val))
-          str = "#{r.ctx_id}-#{r.ctx_val}"
-        elsif (r.is_a?(Hash) and r[:ctx_id] and r[:ctx_val])
-          str = "#{r[:ctx_id]}-#{r[:ctx_val]}"
-        elsif r.is_a?(String)
-          str = r
+      if opts[:refs]
+        rids ||= []
+        opts[:refs].each do |r|
+          if r.instance_of?(Mdm::Module::Ref)
+            str = r.name
+          elsif r.respond_to?(:ctx_id) && r.respond_to?(:ctx_val)
+            str = "#{r.ctx_id}-#{r.ctx_val}"
+          elsif r.is_a?(Hash) && r[:ctx_id] && r[:ctx_val]
+            str = "#{r[:ctx_id]}-#{r[:ctx_val]}"
+          elsif r.is_a?(String)
+            str = r
+          end
+          rids << find_or_create_ref(:name => str) unless str.nil?
         end
-        rids << find_or_create_ref(:name => str) unless str.nil?
-      end
-    end
-
-    host = nil
-    addr = nil
-    if opts[:host].kind_of? ::Mdm::Host
-      host = opts[:host]
-    else
-      host = report_host({:workspace => wspace, :host => opts[:host]})
-      addr = Msf::Util::Host.normalize_host(opts[:host])
-    end
-
-    ret = {}
-
-    # Truncate the info field at the maximum field length
-    if info
-      info = info[0,65535]
-    end
-
-    # Truncate the name field at the maximum field length
-    name = name[0,255]
-
-    # Placeholder for the vuln object
-    vuln = nil
-
-    # Identify the associated service
-    service = opts.delete(:service)
-
-    # Treat port zero as no service
-    if service or opts[:port].to_i > 0
-
-      if not service
-        proto = nil
-        case opts[:proto].to_s.downcase # Catch incorrect usages, as in report_note
-        when 'tcp','udp'
-          proto = opts[:proto]
-          sname = opts[:sname]
-        when 'dns','snmp','dhcp'
-          proto = 'udp'
-          sname = opts[:proto]
-        else
-          proto = 'tcp'
-          sname = opts[:proto]
-        end
-
-        service = host.services.where(name: sname, port: opts[:port].to_i, proto: proto).first_or_create
       end
 
-      # Try to find an existing vulnerability with the same service & references
-      # If there are multiple matches, choose the one with the most matches
-      # If a match is found on a vulnerability with no associated service,
-      # update that vulnerability with our service information. This helps
-      # prevent dupes of the same vuln found by both local patch and
-      # service detection.
-      if rids and rids.length > 0
-        vuln = find_vuln_by_refs(rids, host, service)
-        vuln.service = service if vuln
-      end
-    else
-      # Try to find an existing vulnerability with the same host & references
-      # If there are multiple matches, choose the one with the most matches
-      if rids and rids.length > 0
-        vuln = find_vuln_by_refs(rids, host)
-      end
-    end
-
-    # Try to match based on vuln_details records
-    if not vuln and opts[:details_match]
-      vuln = find_vuln_by_details(opts[:details_match], host, service)
-      if vuln && service && vuln.service.nil?
-        vuln.service = service
-      end
-    end
-
-    # No matches, so create a new vuln record
-    unless vuln
-      if service
-        vuln = service.vulns.find_by_name(name)
+      if opts[:host].is_a? ::Mdm::Host
+        host = opts[:host]
       else
-        vuln = host.vulns.find_by_name(name)
+        normalized_host = Msf::Util::Host.normalize_host(opts[:host])
+        host = report_host(workspace: wspace, host: normalized_host)
       end
 
-      unless vuln
+      # Truncate the info field at the maximum field length
+      if info
+        info = info[0, 65535]
+      end
 
-        vinf = {
-          :host_id => host.id,
-          :name    => name,
-          :info    => info
-        }
+      # Truncate the name field at the maximum field length
+      name = name[0, 255]
 
-        vinf[:service_id] = service.id if service
-        vuln = Mdm::Vuln.create(vinf)
+      # Placeholder for the vuln object
+      vuln = nil
 
-        begin
-          framework.events.on_db_vuln(vuln) if vuln
-        rescue ::Exception => e
-          wlog("Exception in on_db_vuln event handler: #{e.class}: #{e}")
-          wlog("Call Stack\n#{e.backtrace.join("\n")}")
+      # Identify the associated service
+      service = opts.delete(:service)
+
+      # Treat port zero as no service
+      if service || opts[:port].to_i > 0
+        unless service
+          case opts[:proto].to_s.downcase # Catch incorrect usages, as in report_note
+          when 'tcp','udp'
+            proto = opts[:proto]
+            sname = opts[:sname]
+          when 'dns','snmp','dhcp'
+            proto = 'udp'
+            sname = opts[:proto]
+          else
+            proto = 'tcp'
+            sname = opts[:proto]
+          end
+
+          service = host.services.where(name: sname, port: opts[:port].to_i, proto: proto).first_or_create
         end
 
+        # Try to find an existing vulnerability with the same service & references
+        # If there are multiple matches, choose the one with the most matches
+        # If a match is found on a vulnerability with no associated service,
+        # update that vulnerability with our service information. This helps
+        # prevent dupes of the same vuln found by both local patch and
+        # service detection.
+        if rids and rids.length > 0
+          vuln = find_vuln_by_refs(rids, host, service)
+          vuln.service = service if vuln
+        end
+      else
+        # Try to find an existing vulnerability with the same host & references
+        # If there are multiple matches, choose the one with the most matches
+        if rids and rids.length > 0
+          vuln = find_vuln_by_refs(rids, host)
+        end
       end
-    end
 
-    # Set the exploited_at value if provided
-    vuln.exploited_at = exploited_at if exploited_at
+      # Try to match based on vuln_details records
+      if not vuln and opts[:details_match]
+        vuln = find_vuln_by_details(opts[:details_match], host, service)
+        if vuln && service && vuln.service.nil?
+          vuln.service = service
+        end
+      end
 
-    # Merge the references
-    if rids
-      vuln.refs << (rids - vuln.refs)
-    end
+      # No matches, so create a new vuln record
+      unless vuln
+        if service
+          vuln = service.vulns.find_by_name(name)
+        else
+          vuln = host.vulns.find_by_name(name)
+        end
 
-    # Finalize
-    if vuln.changed?
-      msf_assign_timestamps(opts, vuln)
-      vuln.save!
-    end
+        unless vuln
 
-    # Handle vuln_details parameters
-    report_vuln_details(vuln, details) if details
+          vinf = {
+            :host_id => host.id,
+            :name    => name,
+            :info    => info
+          }
 
-    vuln
-  }
+          vinf[:service_id] = service.id if service
+          vuln = Mdm::Vuln.create(vinf)
+
+          begin
+            framework.events.on_db_vuln(vuln) if vuln
+          rescue ::Exception => e
+            wlog("Exception in on_db_vuln event handler: #{e.class}: #{e}")
+            wlog("Call Stack\n#{e.backtrace.join("\n")}")
+          end
+
+        end
+      end
+
+      # Set the exploited_at value if provided
+      vuln.exploited_at = exploited_at if exploited_at
+
+      # Merge the references
+      if rids
+        vuln.refs << (rids - vuln.refs)
+      end
+
+      # Finalize
+      if vuln.changed?
+        msf_assign_timestamps(opts, vuln)
+        vuln.save!
+      end
+
+      # Handle vuln_details parameters
+      report_vuln_details(vuln, details) if details
+
+      vuln
+    }
   end
 
   #
@@ -268,15 +264,15 @@ module Msf::DBManager::Vuln
   # @param opts [Hash] Hash containing the updated values. Key should match the attribute to update. Must contain :id of record to update.
   # @return [Mdm::Vuln] The updated Mdm::Vuln object.
   def update_vuln(opts)
-  ::ApplicationRecord.connection_pool.with_connection {
-    wspace = Msf::Util::DBManager.process_opts_workspace(opts, framework, false)
-    opts = opts.clone()
-    opts.delete(:workspace)
-    opts[:workspace] = wspace if wspace
-    v = Mdm::Vuln.find(opts.delete(:id))
-    v.update!(opts)
-    v
-  }
+    ::ApplicationRecord.connection_pool.with_connection {
+      wspace = Msf::Util::DBManager.process_opts_workspace(opts, framework, false)
+      opts = opts.clone()
+      opts.delete(:workspace)
+      opts[:workspace] = wspace if wspace
+      v = Mdm::Vuln.find(opts.delete(:id))
+      v.update!(opts)
+      v
+    }
   end
 
   # Deletes Vuln entries based on the IDs passed in.
@@ -286,19 +282,19 @@ module Msf::DBManager::Vuln
   def delete_vuln(opts)
     raise ArgumentError.new("The following options are required: :ids") if opts[:ids].nil?
 
-  ::ApplicationRecord.connection_pool.with_connection {
-    deleted = []
-    opts[:ids].each do |vuln_id|
-      vuln = Mdm::Vuln.find(vuln_id)
-      begin
-        deleted << vuln.destroy
-      rescue # refs suck
-        elog("Forcibly deleting #{vuln}")
-        deleted << vuln.delete
+    ::ApplicationRecord.connection_pool.with_connection {
+      deleted = []
+      opts[:ids].each do |vuln_id|
+        vuln = Mdm::Vuln.find(vuln_id)
+        begin
+          deleted << vuln.destroy
+        rescue # refs suck
+          elog("Forcibly deleting #{vuln}")
+          deleted << vuln.delete
+        end
       end
-    end
 
-    return deleted
-  }
+      return deleted
+    }
   end
 end
